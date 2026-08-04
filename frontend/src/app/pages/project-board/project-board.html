@@ -1,0 +1,123 @@
+<div class="board-page">
+  <header>
+    <div>
+      <a routerLink="/projects" class="back-link">&larr; Back to projects</a>
+      <h1>{{ project()?.name }}</h1>
+      @if (myRole(); as role) {
+        <span class="role-badge" [class]="'role-' + role">{{ role | titlecase }}</span>
+      }
+      @if (connectionLost()) {
+        <span class="connection-lost">Connection lost — live updates paused</span>
+      }
+    </div>
+    <div class="header-actions">
+      @if (isOwner()) {
+        <a [routerLink]="['/projects', project()?.id, 'settings']">Settings</a>
+      }
+    </div>
+  </header>
+
+  @if (project()?.description; as description) {
+    <div class="project-note">
+      <span class="pin-dot" aria-hidden="true"></span>
+      <span class="note-label">About this project</span>
+      <p>{{ description }}</p>
+    </div>
+  }
+
+  @if (addTaskStatus(); as status) {
+    <form class="add-task-form" [formGroup]="taskForm" (ngSubmit)="addTask()">
+      <h3>New task in {{ columnLabel(status) }}</h3>
+
+      <label for="title">Task title</label>
+      <input id="title" type="text" formControlName="title" />
+      @if (taskForm.controls.title.touched && taskForm.controls.title.invalid) {
+        <p class="field-error">Title is required.</p>
+      }
+
+      <label for="description">Description</label>
+      <textarea id="description" formControlName="description"></textarea>
+
+      <div class="form-actions">
+        <button type="submit">Add task</button>
+        <button type="button" (click)="closeAddTaskForm()">Cancel</button>
+      </div>
+    </form>
+  }
+
+  @if (errorMessage()) {
+    <p class="drag-error">{{ errorMessage() }}</p>
+  }
+
+  <div class="board">
+    @for (statusDef of statuses; track statusDef.value) {
+      <div class="column">
+        <h2>{{ statusDef.label }}</h2>
+        <div
+          class="drop-list"
+          cdkDropList
+          [id]="'dropList-' + statusDef.value"
+          [cdkDropListData]="columns()[statusDef.value]"
+          [cdkDropListConnectedTo]="dropListIds"
+          [cdkDropListDisabled]="isViewer()"
+          (cdkDropListDropped)="drop($event, statusDef.value)"
+        >
+          @for (task of columns()[statusDef.value]; track task.id) {
+            <div
+              class="task-card"
+              cdkDrag
+              [cdkDragData]="task"
+              [cdkDragDisabled]="isViewer()"
+              [class.viewer]="isViewer()"
+              (click)="openTask(task)"
+            >
+              <span
+                class="priority-dot"
+                [class]="'priority-' + task.priority"
+                [attr.title]="'Priority: ' + task.priority"
+              >
+                @if (task.priority === 'high') {
+                  &#128681;
+                }
+              </span>
+
+              <strong>{{ task.title }}</strong>
+              @if (task.description) {
+                <p>{{ task.description }}</p>
+              }
+              @if (!isViewer()) {
+                <div class="task-actions">
+                  <button (click)="onDeleteClick($event, task)">Delete</button>
+                </div>
+              }
+            </div>
+          } @empty {
+            <p class="empty-column">No tasks</p>
+          }
+
+          @if (!isViewer()) {
+            <button
+              class="add-card-btn"
+              type="button"
+              [attr.aria-label]="'Add task to ' + statusDef.label"
+              [title]="'Add task to ' + statusDef.label"
+              (click)="openAddTaskForm(statusDef.value)"
+            >
+              +
+            </button>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  @if (selectedTask(); as task) {
+    <app-task-detail-panel
+      [task]="task"
+      [isViewer]="isViewer()"
+      [wsEvent]="lastWsEvent()"
+      (closed)="selectedTask.set(null)"
+      (taskUpdated)="onTaskUpdated($event)"
+    />
+  }
+</div>

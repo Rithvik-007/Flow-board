@@ -1,0 +1,36 @@
+/* You can add global styles to this file, and also import other style files */
+
+:root {
+  --board: #2b2725;
+  --card: #fbf8f2;
+  --ink: #211d1a;
+  --pin: #c1443c;
+  --moss: #5c7a5e;
+  --sand: #c9a227;
+
+  --font-heading: 'Roboto Slab', Georgia, serif;
+  --font-body: 'Inter', 'Work Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+body {
+  margin: 0;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

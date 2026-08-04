@@ -1,0 +1,84 @@
+<div class="panel-backdrop" (click)="closed.emit()">
+  <aside class="panel" (click)="$event.stopPropagation()">
+    <header class="panel-header">
+      <h2>{{ task().title }}</h2>
+      <button class="close-btn" type="button" (click)="closed.emit()">&times;</button>
+    </header>
+
+    @if (task().description) {
+      <p class="description">{{ task().description }}</p>
+    }
+
+    <div class="priority-field">
+      <label for="priority">Priority</label>
+      <select id="priority" [disabled]="isViewer()" (change)="changePriority($any($event.target).value)">
+        @for (priority of priorities; track priority) {
+          <option [value]="priority" [selected]="priority === task().priority">
+            {{ priority | titlecase }}
+          </option>
+        }
+      </select>
+    </div>
+
+    <section class="subtasks-section">
+      <h3>Subtasks</h3>
+      <ul class="subtask-list">
+        @for (subtask of subtasks(); track subtask.id) {
+          <li class="subtask-item">
+            <label>
+              <input
+                type="checkbox"
+                [checked]="subtask.is_complete"
+                [disabled]="isViewer()"
+                (change)="toggleSubtask(subtask)"
+              />
+              <span [class.done]="subtask.is_complete">{{ subtask.title }}</span>
+            </label>
+            @if (!isViewer()) {
+              <button class="remove-btn" type="button" (click)="deleteSubtask(subtask)">&times;</button>
+            }
+          </li>
+        } @empty {
+          <p class="empty">No subtasks yet.</p>
+        }
+      </ul>
+
+      @if (!isViewer()) {
+        <form class="add-row" [formGroup]="subtaskForm" (ngSubmit)="addSubtask()">
+          <input type="text" formControlName="title" placeholder="Add a subtask" />
+          <button type="submit">Add</button>
+        </form>
+      }
+    </section>
+
+    <section class="comments-section">
+      <h3>Comments</h3>
+      <ul class="comment-list">
+        @for (comment of comments(); track comment.id) {
+          <li class="comment-item">
+            <div class="avatar">{{ initials(comment.user.name) }}</div>
+            <div class="comment-body">
+              <div class="comment-meta">
+                <strong>{{ comment.user.name }}</strong>
+                <span class="timestamp">{{ comment.created_at | relativeTime }}</span>
+              </div>
+              <p>{{ comment.content }}</p>
+            </div>
+            @if (!isViewer() && comment.user_id === currentUserId()) {
+              <button class="remove-btn" type="button" (click)="deleteComment(comment)">&times;</button>
+            }
+          </li>
+        } @empty {
+          <p class="empty">No comments yet.</p>
+        }
+      </ul>
+
+      @if (!isViewer()) {
+        <form class="add-row stacked" [formGroup]="commentForm" (ngSubmit)="addComment()">
+          <textarea formControlName="content" rows="2" placeholder="Write a comment"></textarea>
+          <button type="submit">Post</button>
+        </form>
+      }
+    </section>
+  </aside>
+</div>

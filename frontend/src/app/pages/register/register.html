@@ -1,0 +1,34 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <span class="pin-dot" aria-hidden="true"></span>
+
+    <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()">
+      <h1>Sign up</h1>
+
+      <label for="name">Name</label>
+      <input id="name" type="text" formControlName="name" />
+      @if (form.controls.name.touched && form.controls.name.invalid) {
+        <p class="field-error">Name is required.</p>
+      }
+
+      <label for="email">Email</label>
+      <input id="email" type="email" formControlName="email" />
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+        <p class="field-error">A valid email is required.</p>
+      }
+
+      <label for="password">Password</label>
+      <input id="password" type="password" formControlName="password" />
+      @if (form.controls.password.touched && form.controls.password.invalid) {
+        <p class="field-error">Password must be at least 8 characters.</p>
+      }
+
+      @if (errorMessage()) {
+        <p class="form-error">{{ errorMessage() }}</p>
+      }
+
+      <button type="submit">Sign up</button>
+      <p class="auth-switch">Already have an account? <a routerLink="/login">Log in</a></p>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,60 @@
+<div class="settings-page">
+  <header>
+    <div>
+      <a [routerLink]="['/projects', project()?.id]" class="back-link">&larr; Back to board</a>
+      <h1>{{ project()?.name }} — Settings</h1>
+    </div>
+  </header>
+
+  <section class="members-section">
+    <h2>Members</h2>
+    <ul class="member-list">
+      @for (member of members(); track member.id) {
+        <li class="member-row">
+          <div class="member-info">
+            <strong>{{ member.user.name }}</strong>
+            <span class="email">{{ member.user.email }}</span>
+          </div>
+
+          @if (isOwnerRow(member)) {
+            <span class="role-tag">Owner</span>
+          } @else {
+            <select
+              [value]="member.role"
+              (change)="changeRole(member, $any($event.target).value)"
+            >
+              <option value="member">Member</option>
+              <option value="viewer">Viewer</option>
+            </select>
+            <button class="remove-btn" type="button" (click)="removeMember(member)">Remove</button>
+          }
+        </li>
+      } @empty {
+        <p class="empty">No members yet.</p>
+      }
+    </ul>
+  </section>
+
+  <section class="invite-section">
+    <h2>Invite a member</h2>
+    <form [formGroup]="inviteForm" (ngSubmit)="invite()">
+      <label for="email">Email</label>
+      <input id="email" type="email" formControlName="email" placeholder="teammate@example.com" />
+      @if (inviteForm.controls.email.touched && inviteForm.controls.email.invalid) {
+        <p class="field-error">A valid email is required.</p>
+      }
+
+      <label for="role">Role</label>
+      <select id="role" formControlName="role">
+        <option value="member">Member</option>
+        <option value="viewer">Viewer</option>
+      </select>
+
+      @if (errorMessage()) {
+        <p class="field-error">{{ errorMessage() }}</p>
+      }
+
+      <button type="submit">Send invite</button>
+    </form>
+  </section>
+</div>

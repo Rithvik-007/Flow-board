@@ -1,0 +1,85 @@
+<div class="projects-page">
+  <header class="page-header">
+    <h1>Your projects</h1>
+    <button class="btn btn-primary" type="button" (click)="showCreateForm.set(!showCreateForm())">
+      + New project
+    </button>
+  </header>
+
+  @if (showCreateForm()) {
+    <form class="create-form" [formGroup]="form" (ngSubmit)="submit()">
+      <label for="name">Project name</label>
+      <input id="name" type="text" formControlName="name" />
+      @if (form.controls.name.touched && form.controls.name.invalid) {
+        <p class="field-error">Project name is required.</p>
+      }
+
+      <label for="description">Description</label>
+      <textarea id="description" formControlName="description"></textarea>
+
+      <div class="form-actions">
+        <button class="btn btn-primary" type="submit">Create</button>
+        <button class="btn btn-outline" type="button" (click)="showCreateForm.set(false)">Cancel</button>
+      </div>
+    </form>
+  }
+
+  @if (loaded() && cards().length === 0) {
+    <div class="empty-state">
+      <p>You don't have any projects yet.</p>
+      <button class="btn btn-primary" type="button" (click)="showCreateForm.set(true)">
+        Create your first project
+      </button>
+    </div>
+  }
+
+  @for (section of sections(); track section.title) {
+    <section class="project-section">
+      <h2>{{ section.title }}</h2>
+      <div class="project-grid">
+        @for (card of section.cards; track card.project.id; let i = $index) {
+          <a
+            class="project-card"
+            [class.tilt-a]="i % 3 === 0"
+            [class.tilt-b]="i % 3 === 1"
+            [class.tilt-c]="i % 3 === 2"
+            [routerLink]="['/projects', card.project.id]"
+          >
+            <span class="pin-dot" aria-hidden="true"></span>
+
+            <div class="mini-board" aria-hidden="true">
+              @for (col of miniBoardPattern(card.project.id); track $index) {
+                <div class="mini-col">
+                  @for (h of col; track $index) {
+                    <div class="mini-chip" [style.height.%]="h"></div>
+                  }
+                </div>
+              }
+            </div>
+
+            <h3>{{ card.project.name }}</h3>
+            <p class="card-stats">{{ card.taskCount }} tasks &middot; {{ card.doneCount }} done</p>
+            <p class="card-activity">
+              @if (card.lastActive) {
+                Updated {{ card.lastActive | relativeTime }}
+              } @else {
+                No activity yet
+              }
+            </p>
+
+            <div class="member-stack">
+              @for (member of card.visibleMembers; track member.id; let m = $index) {
+                <span class="avatar" [class]="'avatar-c' + (m % 3)" [title]="member.user.name">
+                  {{ initials(member.user.name) }}
+                </span>
+              }
+              @if (card.overflowCount > 0) {
+                <span class="avatar avatar-overflow">+{{ card.overflowCount }}</span>
+              }
+            </div>
+          </a>
+        }
+      </div>
+    </section>
+  }
+</div>

@@ -1,0 +1,9 @@
+# Claude Code local session state — not meant to be shared/versioned
+.claude/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor
+*.swp

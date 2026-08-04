@@ -1,0 +1,47 @@
+<div class="shell">
+  <aside class="sidebar" [class.open]="mobileNavOpen()">
+    <a routerLink="/projects" class="brand" (click)="closeMobileNav()">Flowboard</a>
+
+    <nav class="main-nav">
+      <ul>
+        <li>
+          <a
+            routerLink="/projects"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: false }"
+            (click)="closeMobileNav()"
+          >
+            Projects
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+      @if (currentUser(); as user) {
+        <div class="user-chip">
+          <span class="avatar">{{ initials(user.name) }}</span>
+          <span class="user-name">{{ user.name }}</span>
+        </div>
+      }
+      <button class="logout-btn" type="button" (click)="logout()">Log out</button>
+    </div>
+  </aside>
+
+  @if (mobileNavOpen()) {
+    <div class="backdrop" (click)="closeMobileNav()"></div>
+  }
+
+  <div class="shell-main">
+    <header class="topbar">
+      <button class="hamburger" type="button" (click)="mobileNavOpen.set(true)" aria-label="Open menu">
+        &#9776;
+      </button>
+      <span class="topbar-brand">Flowboard</span>
+    </header>
+
+    <main class="content">
+      <router-outlet />
+    </main>
+  </div>
+</div>

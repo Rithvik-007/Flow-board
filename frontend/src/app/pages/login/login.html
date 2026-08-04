@@ -1,0 +1,30 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <span class="pin-dot" aria-hidden="true"></span>
+
+    <a routerLink="/" class="home-link">← Home</a>
+
+    <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()">
+      <h1>Log in</h1>
+
+      <label for="email">Email</label>
+      <input id="email" type="email" formControlName="email" />
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+        <p class="field-error">A valid email is required.</p>
+      }
+
+      <label for="password">Password</label>
+      <input id="password" type="password" formControlName="password" />
+      @if (form.controls.password.touched && form.controls.password.invalid) {
+        <p class="field-error">Password is required.</p>
+      }
+
+      @if (errorMessage()) {
+        <p class="form-error">{{ errorMessage() }}</p>
+      }
+
+      <button type="submit">Log in</button>
+      <p class="auth-switch">Don't have an account? <a routerLink="/register">Sign up</a></p>
+    </form>
+  </div>
+</div>
