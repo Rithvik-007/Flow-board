@@ -15,6 +15,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { WebSocketService, WsEvent } from '../../core/services/websocket.service';
 import { ProjectDetail, ProjectRole } from '../../core/models/project.model';
 import { Task, TaskStatus } from '../../core/models/task.model';
+import { DueDatePipe } from '../../core/pipes/due-date.pipe';
 import { TaskDetailPanel } from './task-detail-panel/task-detail-panel';
 
 const STATUSES: { value: TaskStatus; label: string }[] = [
@@ -31,7 +32,15 @@ function emptyColumns(): ColumnMap {
 
 @Component({
   selector: 'app-project-board',
-  imports: [ReactiveFormsModule, FormsModule, RouterLink, DragDropModule, TaskDetailPanel, TitleCasePipe],
+  imports: [
+    ReactiveFormsModule,
+    FormsModule,
+    RouterLink,
+    DragDropModule,
+    TaskDetailPanel,
+    TitleCasePipe,
+    DueDatePipe,
+  ],
   templateUrl: './project-board.html',
   styleUrl: './project-board.css',
 })
@@ -76,6 +85,8 @@ export class ProjectBoard implements OnInit, OnDestroy {
   readonly taskForm = this.fb.group({
     title: ['', [Validators.required]],
     description: [''],
+    due_date: [''],
+    due_time: [''],
   });
 
   private projectId!: number;
@@ -142,14 +153,33 @@ export class ProjectBoard implements OnInit, OnDestroy {
       return;
     }
 
-    const { title, description } = this.taskForm.getRawValue();
+    const { title, description, due_date, due_time } = this.taskForm.getRawValue();
     this.taskService
-      .createTask({ project_id: this.projectId, title: title!, description: description || null, status })
+      .createTask({
+        project_id: this.projectId,
+        title: title!,
+        description: description || null,
+        status,
+        due_date: this.combineDateTime(due_date, due_time),
+      })
       .subscribe((task) => {
         const current = this.columns();
         this.columns.set({ ...current, [status]: [task, ...current[status]] });
         this.closeAddTaskForm();
       });
+  }
+
+  // A bare "YYYY-MM-DDTHH:mm:00" (no timezone suffix) is parsed by `Date` as
+  // local time, which is exactly the picker's intent — toISOString() then
+  // converts that to the UTC instant the backend stores.
+  private combineDateTime(date: string | null | undefined, time: string | null | undefined): string | null {
+    if (!date) return null;
+    return new Date(`${date}T${time || '00:00'}:00`).toISOString();
+  }
+
+  isOverdue(task: Task): boolean {
+    if (!task.due_date || task.status === 'done') return false;
+    return new Date(task.due_date) < new Date();
   }
 
   deleteTask(task: Task): void {

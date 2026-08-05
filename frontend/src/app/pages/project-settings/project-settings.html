@@ -19,12 +19,9 @@
           @if (isOwnerRow(member)) {
             <span class="role-tag">Owner</span>
           } @else {
-            <select
-              [value]="member.role"
-              (change)="changeRole(member, $any($event.target).value)"
-            >
-              <option value="member">Member</option>
-              <option value="viewer">Viewer</option>
+            <select (change)="changeRole(member, $any($event.target).value)">
+              <option value="member" [selected]="member.role === 'member'">Member</option>
+              <option value="viewer" [selected]="member.role === 'viewer'">Viewer</option>
             </select>
             <button class="remove-btn" type="button" (click)="removeMember(member)">Remove</button>
           }
@@ -56,5 +53,46 @@
 
       <button type="submit">Send invite</button>
     </form>
+  </section>
+
+  <section class="danger-section">
+    <h2>Danger zone</h2>
+
+    @if (!showDeleteConfirm()) {
+      <button class="btn-danger" type="button" (click)="openDeleteConfirm()">Delete project</button>
+    } @else {
+      <div class="delete-confirm">
+        <p>
+          This permanently deletes <strong>{{ project()?.name }}</strong> and all of its tasks,
+          subtasks, comments, and members. This cannot be undone.
+        </p>
+        <label for="confirm-name">
+          Type <strong>{{ project()?.name }}</strong> to confirm
+        </label>
+        <input
+          id="confirm-name"
+          type="text"
+          autocomplete="off"
+          [value]="deleteConfirmInput()"
+          (input)="deleteConfirmInput.set($any($event.target).value)"
+        />
+
+        @if (deleteError()) {
+          <p class="field-error">{{ deleteError() }}</p>
+        }
+
+        <div class="form-actions">
+          <button
+            class="btn-danger"
+            type="button"
+            [disabled]="!isDeleteConfirmed()"
+            (click)="deleteProject()"
+          >
+            Permanently delete
+          </button>
+          <button type="button" (click)="cancelDelete()">Cancel</button>
+        </div>
+      </div>
+    }
   </section>
 </div>

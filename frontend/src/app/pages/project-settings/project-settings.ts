@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
@@ -21,6 +21,15 @@ export class ProjectSettings implements OnInit {
   readonly project = signal<ProjectDetail | null>(null);
   readonly members = signal<ProjectMember[]>([]);
   readonly errorMessage = signal<string | null>(null);
+
+  readonly showDeleteConfirm = signal(false);
+  readonly deleteConfirmInput = signal('');
+  readonly deleteError = signal<string | null>(null);
+  // Deletion is irreversible, so it's gated on typing the project's exact
+  // name rather than a plain "are you sure?" click.
+  readonly isDeleteConfirmed = computed(
+    () => this.deleteConfirmInput().trim().length > 0 && this.deleteConfirmInput() === this.project()?.name,
+  );
 
   readonly inviteForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -92,5 +101,26 @@ export class ProjectSettings implements OnInit {
 
   isOwnerRow(member: ProjectMember): boolean {
     return member.role === 'owner';
+  }
+
+  openDeleteConfirm(): void {
+    this.showDeleteConfirm.set(true);
+    this.deleteConfirmInput.set('');
+    this.deleteError.set(null);
+  }
+
+  cancelDelete(): void {
+    this.showDeleteConfirm.set(false);
+    this.deleteConfirmInput.set('');
+  }
+
+  deleteProject(): void {
+    if (!this.isDeleteConfirmed()) return;
+
+    this.deleteError.set(null);
+    this.projectService.deleteProject(this.projectId).subscribe({
+      next: () => this.router.navigate(['/projects']),
+      error: () => this.deleteError.set('Could not delete project — please try again.'),
+    });
   }
 }

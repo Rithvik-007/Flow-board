@@ -61,6 +61,37 @@
   font-size: 0.9rem;
 }
 
+.due-date-field {
+  margin-bottom: 1.5rem;
+}
+
+.due-date-field label {
+  display: block;
+  font-size: 0.85rem;
+  color: #555;
+  margin-bottom: 0.35rem;
+}
+
+.due-date-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.due-date-inputs input {
+  padding: 0.3rem 0.5rem;
+  font-size: 0.9rem;
+}
+
+.clear-btn {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 h3 {
   font-size: 0.95rem;
   margin: 1.5rem 0 0.5rem;

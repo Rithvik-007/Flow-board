@@ -38,6 +38,12 @@
       <label for="description">Description</label>
       <textarea id="description" formControlName="description"></textarea>
 
+      <label for="due-date">Due date (optional)</label>
+      <div class="due-date-inputs">
+        <input id="due-date" type="date" formControlName="due_date" />
+        <input type="time" formControlName="due_time" aria-label="Due time" />
+      </div>
+
       <div class="form-actions">
         <button type="submit">Add task</button>
         <button type="button" (click)="closeAddTaskForm()">Cancel</button>
@@ -84,6 +90,11 @@
               <strong>{{ task.title }}</strong>
               @if (task.description) {
                 <p>{{ task.description }}</p>
+              }
+              @if (task.due_date) {
+                <span class="due-date" [class.overdue]="isOverdue(task)">
+                  {{ task.due_date | dueDate }}
+                </span>
               }
               @if (!isViewer()) {
                 <div class="task-actions">

@@ -48,6 +48,11 @@ export class TaskDetailPanel {
     content: ['', [Validators.required]],
   });
 
+  readonly dueDateForm = this.fb.group({
+    due_date: [''],
+    due_time: [''],
+  });
+
   constructor() {
     // task is a signal input, so this effect automatically reruns whenever
     // the panel is pointed at a different task.
@@ -69,12 +74,50 @@ export class TaskDetailPanel {
         this.loadComments(event.task_id);
       }
     });
+
+    // Keep the due-date fields in sync whenever the panel is pointed at a
+    // different task, or this task's own due_date changes underneath it.
+    effect(() => {
+      const { date, time } = this.splitDueDate(this.task().due_date);
+      this.dueDateForm.setValue({ due_date: date, due_time: time }, { emitEvent: false });
+    });
   }
 
   changePriority(priority: TaskPriority): void {
     this.taskService.updateTask(this.task().id, { priority }).subscribe((updated) => {
       this.taskUpdated.emit(updated);
     });
+  }
+
+  saveDueDate(): void {
+    const { due_date, due_time } = this.dueDateForm.getRawValue();
+    this.taskService.updateTask(this.task().id, { due_date: this.combineDateTime(due_date, due_time) }).subscribe(
+      (updated) => this.taskUpdated.emit(updated),
+    );
+  }
+
+  clearDueDate(): void {
+    this.dueDateForm.setValue({ due_date: '', due_time: '' }, { emitEvent: false });
+    this.taskService.updateTask(this.task().id, { due_date: null }).subscribe((updated) => {
+      this.taskUpdated.emit(updated);
+    });
+  }
+
+  private combineDateTime(date: string | null | undefined, time: string | null | undefined): string | null {
+    if (!date) return null;
+    return new Date(`${date}T${time || '00:00'}:00`).toISOString();
+  }
+
+  // Mirrors the "midnight = no specific time" convention DueDatePipe uses for display,
+  // so a due date saved without a time round-trips back into the form the same way.
+  private splitDueDate(dueDate: string | null): { date: string; time: string } {
+    if (!dueDate) return { date: '', time: '' };
+    const d = new Date(dueDate);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const date = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const hasTime = d.getHours() !== 0 || d.getMinutes() !== 0;
+    const time = hasTime ? `${pad(d.getHours())}:${pad(d.getMinutes())}` : '';
+    return { date, time };
   }
 
   private loadSubtasks(taskId: number): void {

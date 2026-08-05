@@ -20,6 +20,29 @@
       </select>
     </div>
 
+    <div class="due-date-field" [formGroup]="dueDateForm">
+      <label for="due-date">Due date</label>
+      <div class="due-date-inputs">
+        <input
+          id="due-date"
+          type="date"
+          formControlName="due_date"
+          [disabled]="isViewer()"
+          (change)="saveDueDate()"
+        />
+        <input
+          type="time"
+          formControlName="due_time"
+          aria-label="Due time"
+          [disabled]="isViewer()"
+          (change)="saveDueDate()"
+        />
+        @if (task().due_date && !isViewer()) {
+          <button type="button" class="clear-btn" (click)="clearDueDate()">Clear</button>
+        }
+      </div>
+    </div>
+
     <section class="subtasks-section">
       <h3>Subtasks</h3>
       <ul class="subtask-list">

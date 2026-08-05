@@ -75,6 +75,25 @@ def get_project(
     return project
 
 
+@router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_project(
+    project_id: int,
+    db: Session = Depends(get_db),
+    member: ProjectMember = Depends(get_project_member),
+):
+    require_role(member, ProjectRole.owner)
+
+    project = db.get(Project, project_id)
+    if project is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+
+    # Project.members/tasks and Task.subtasks/comments are all configured with
+    # cascade="all, delete-orphan", so this single delete removes everything
+    # scoped to the project — no manual cleanup of child rows needed.
+    db.delete(project)
+    db.commit()
+
+
 @router.get("/{project_id}/tasks", response_model=list[TaskResponse])
 def list_project_tasks(
     project_id: int,

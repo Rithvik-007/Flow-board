@@ -49,4 +49,8 @@ export class ProjectService {
   removeMember(projectId: number, userId: number): Observable<void> {
     return this.http.delete<void>(`${API_BASE_URL}/projects/${projectId}/members/${userId}`);
   }
+
+  deleteProject(projectId: number): Observable<void> {
+    return this.http.delete<void>(`${API_BASE_URL}/projects/${projectId}`);
+  }
 }
