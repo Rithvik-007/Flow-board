@@ -68,7 +68,7 @@
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: rgba(33, 29, 26, 0.6);
+  color: color-mix(in srgb, var(--ink) 60%, transparent);
   margin-top: 0.5rem;
 }
 
@@ -76,9 +76,9 @@
   font-family: var(--font-body);
   font-size: 1rem;
   padding: 0.55rem 0.6rem;
-  border: 1px solid rgba(33, 29, 26, 0.22);
+  border: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
   border-radius: 3px;
-  background: #ffffff;
+  background: var(--board);
   color: var(--ink);
 }
 
@@ -97,7 +97,7 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   background: var(--pin);
-  color: var(--card);
+  color: var(--board);
   border: none;
   border-radius: 3px;
   cursor: pointer;
@@ -124,7 +124,7 @@
   margin: 1.3rem 0 0;
   font-size: 0.85rem;
   text-align: center;
-  color: rgba(33, 29, 26, 0.7);
+  color: color-mix(in srgb, var(--ink) 70%, transparent);
 }
 
 .auth-switch a {

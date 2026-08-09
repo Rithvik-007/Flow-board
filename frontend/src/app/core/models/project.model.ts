@@ -1,3 +1,4 @@
+import { Column } from './column.model';
 import { User } from './user.model';
 
 export type ProjectRole = 'owner' | 'member' | 'viewer';
@@ -20,6 +21,7 @@ export interface ProjectMember {
 
 export interface ProjectDetail extends Project {
   members: ProjectMember[];
+  columns: Column[];
 }
 
 export interface ProjectCreateRequest {

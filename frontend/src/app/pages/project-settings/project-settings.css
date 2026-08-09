@@ -1,7 +1,6 @@
 .settings-page {
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 2rem 1.5rem;
+  color: var(--ink);
 }
 
 header {
@@ -9,8 +8,30 @@ header {
 }
 
 .back-link {
-  display: block;
-  margin-bottom: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+  padding: 0.3rem 0.75rem 0.3rem 0.55rem;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
+  text-decoration: none;
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  border-radius: 999px;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.back-link:hover {
+  color: var(--pin);
+  background: color-mix(in srgb, var(--pin) 15%, transparent);
+  transform: translateX(-2px);
 }
 
 header h1 {
@@ -20,6 +41,7 @@ header h1 {
 h2 {
   font-size: 1.05rem;
   margin: 0 0 0.75rem;
+  color: var(--ink);
 }
 
 .members-section {
@@ -39,7 +61,8 @@ h2 {
   justify-content: space-between;
   align-items: center;
   gap: 0.75rem;
-  border: 1px solid #ddd;
+  background: var(--card);
+  border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
   border-radius: 6px;
   padding: 0.6rem 0.9rem;
 }
@@ -51,22 +74,26 @@ h2 {
 
 .member-info .email {
   font-size: 0.85rem;
-  color: #777;
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
 }
 
 .role-tag {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #1e7e34;
+  color: var(--moss);
 }
 
 .remove-btn {
   background: none;
-  border: 1px solid #c0392b;
-  color: #c0392b;
+  border: 1px solid var(--pin);
+  color: var(--pin);
   border-radius: 4px;
   padding: 0.25rem 0.6rem;
   cursor: pointer;
+}
+
+.remove-btn:hover {
+  background: color-mix(in srgb, var(--pin) 15%, transparent);
 }
 
 .invite-section form {
@@ -74,7 +101,8 @@ h2 {
   flex-direction: column;
   gap: 0.5rem;
   padding: 1rem;
-  border: 1px solid #ddd;
+  background: var(--card);
+  border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
   border-radius: 6px;
   max-width: 360px;
 }
@@ -83,28 +111,39 @@ h2 {
 .invite-section select {
   padding: 0.5rem;
   font-size: 1rem;
+  font-family: inherit;
+  background: var(--board);
+  color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
+  border-radius: 3px;
 }
 
 .field-error {
-  color: #c0392b;
+  color: var(--pin);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.field-success {
+  color: var(--moss);
   font-size: 0.85rem;
   margin: 0;
 }
 
 .empty {
-  color: #888;
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
   font-size: 0.9rem;
 }
 
 .danger-section {
   margin-top: 2.5rem;
   padding-top: 1.5rem;
-  border-top: 1px solid rgba(33, 29, 26, 0.15);
+  border-top: 1px solid color-mix(in srgb, var(--ink) 15%, transparent);
 }
 
 .btn-danger {
-  background: var(--pin, #c1443c);
-  color: #fff;
+  background: var(--pin);
+  color: var(--board);
   border: none;
   border-radius: 4px;
   padding: 0.55rem 1rem;
@@ -118,7 +157,8 @@ h2 {
 }
 
 .btn-danger:disabled {
-  background: #ccc;
+  background: color-mix(in srgb, var(--ink) 20%, var(--board));
+  color: color-mix(in srgb, var(--ink) 45%, transparent);
   cursor: not-allowed;
   filter: none;
 }
@@ -126,9 +166,9 @@ h2 {
 .delete-confirm {
   max-width: 420px;
   padding: 1rem;
-  border: 1px solid var(--pin, #c1443c);
+  border: 1px solid var(--pin);
   border-radius: 6px;
-  background: #fdf3f2;
+  background: color-mix(in srgb, var(--pin) 12%, var(--card));
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -137,18 +177,22 @@ h2 {
 .delete-confirm p {
   margin: 0;
   font-size: 0.9rem;
-  color: #444;
+  color: color-mix(in srgb, var(--ink) 85%, transparent);
 }
 
 .delete-confirm label {
   font-size: 0.85rem;
   font-weight: 600;
+  color: var(--ink);
 }
 
 .delete-confirm input {
   padding: 0.5rem;
   font-size: 1rem;
-  border: 1px solid rgba(33, 29, 26, 0.3);
+  font-family: inherit;
+  background: var(--board);
+  color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--ink) 30%, transparent);
   border-radius: 4px;
 }
 

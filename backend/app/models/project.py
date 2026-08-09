@@ -19,3 +19,7 @@ class Project(Base):
     owner = relationship("User", back_populates="owned_projects", foreign_keys=[owner_id])
     members = relationship("ProjectMember", back_populates="project", cascade="all, delete-orphan")
     tasks = relationship("Task", back_populates="project", cascade="all, delete-orphan")
+    columns = relationship(
+        "Column", back_populates="project", cascade="all, delete-orphan", order_by="Column.position"
+    )
+    invites = relationship("Invite", back_populates="project", cascade="all, delete-orphan")

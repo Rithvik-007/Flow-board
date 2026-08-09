@@ -2,8 +2,9 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 
+from app.models.invite import InviteStatus
 from app.models.project_member import ProjectRole
-from app.models.task import TaskPriority, TaskStatus
+from app.models.task import TaskPriority
 
 
 # ---- Auth / Users ----
@@ -55,8 +56,33 @@ class ProjectResponse(BaseModel):
     created_at: datetime
 
 
+# ---- Columns ----
+
+class ColumnCreate(BaseModel):
+    name: str
+
+
+class ColumnUpdate(BaseModel):
+    name: str
+
+
+class ColumnResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    project_id: int
+    name: str
+    position: int
+    created_at: datetime
+
+
+class ColumnReorderRequest(BaseModel):
+    column_ids: list[int]
+
+
 class ProjectDetailResponse(ProjectResponse):
     members: list[ProjectMemberResponse]
+    columns: list[ColumnResponse]
 
 
 class MemberInviteRequest(BaseModel):
@@ -82,6 +108,32 @@ class MemberRoleUpdate(BaseModel):
         return v
 
 
+# ---- Invites ----
+
+class InviteResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    project_id: int
+    invited_email: EmailStr
+    invited_by: int
+    role: ProjectRole
+    status: InviteStatus
+    created_at: datetime
+
+
+class InviteProjectSummary(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+
+
+class MyInviteResponse(InviteResponse):
+    project: InviteProjectSummary
+    inviter: UserResponse
+
+
 # ---- Tasks ----
 
 class TaskCreate(BaseModel):
@@ -90,14 +142,14 @@ class TaskCreate(BaseModel):
     description: str | None = None
     assignee_id: int | None = None
     due_date: datetime | None = None
-    status: TaskStatus = TaskStatus.todo
+    column_id: int
     priority: TaskPriority = TaskPriority.medium
 
 
 class TaskUpdate(BaseModel):
     title: str | None = None
     description: str | None = None
-    status: TaskStatus | None = None
+    column_id: int | None = None
     assignee_id: int | None = None
     due_date: datetime | None = None
     priority: TaskPriority | None = None
@@ -110,12 +162,16 @@ class TaskResponse(BaseModel):
     project_id: int
     title: str
     description: str | None
-    status: TaskStatus
+    column_id: int
     priority: TaskPriority
     assignee_id: int | None
     created_by: int
     due_date: datetime | None
     created_at: datetime
+    # Not a mapped column — computed per-request for the current user (see
+    # list_project_tasks) and defaulted here so other endpoints that return a
+    # bare Task (create/update) don't need to know about mentions at all.
+    has_unread_mentions: bool = False
 
 
 # ---- Subtasks ----

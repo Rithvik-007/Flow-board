@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import Base, engine
-from app.routers import auth, comments, projects, subtasks, tasks, ws
+from app.routers import auth, columns, comments, invites, projects, subtasks, tasks, ws
 
 # Importing app.models registers every model class on Base's metadata, so
 # create_all() below knows to create all tables, not just some of them.
@@ -32,7 +32,9 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(projects.router)
+app.include_router(invites.router)
 app.include_router(tasks.router)
+app.include_router(columns.router)
 app.include_router(subtasks.router)
 app.include_router(comments.router)
 app.include_router(ws.router)

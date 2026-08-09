@@ -11,24 +11,14 @@ import {
 } from '@angular/cdk/drag-drop';
 import { ProjectService } from '../../core/services/project.service';
 import { TaskService } from '../../core/services/task.service';
+import { ColumnService } from '../../core/services/column.service';
 import { AuthService } from '../../core/services/auth.service';
 import { WebSocketService, WsEvent } from '../../core/services/websocket.service';
 import { ProjectDetail, ProjectRole } from '../../core/models/project.model';
-import { Task, TaskStatus } from '../../core/models/task.model';
+import { Column } from '../../core/models/column.model';
+import { Task } from '../../core/models/task.model';
 import { DueDatePipe } from '../../core/pipes/due-date.pipe';
 import { TaskDetailPanel } from './task-detail-panel/task-detail-panel';
-
-const STATUSES: { value: TaskStatus; label: string }[] = [
-  { value: 'todo', label: 'To Do' },
-  { value: 'in_progress', label: 'In Progress' },
-  { value: 'done', label: 'Done' },
-];
-
-type ColumnMap = Record<TaskStatus, Task[]>;
-
-function emptyColumns(): ColumnMap {
-  return { todo: [], in_progress: [], done: [] };
-}
 
 @Component({
   selector: 'app-project-board',
@@ -49,21 +39,32 @@ export class ProjectBoard implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly projectService = inject(ProjectService);
   private readonly taskService = inject(TaskService);
+  private readonly columnService = inject(ColumnService);
   private readonly authService = inject(AuthService);
   private readonly webSocketService = inject(WebSocketService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly statuses = STATUSES;
-  // Every cdkDropList needs a unique id so cdkDropListConnectedTo can link them together.
-  readonly dropListIds = STATUSES.map((s) => `dropList-${s.value}`);
-
   readonly project = signal<ProjectDetail | null>(null);
-  readonly columns = signal<ColumnMap>(emptyColumns());
-  // Which column's "+" button was clicked — also which status the add-task
+  // Columns are user-managed now (not a fixed set), sorted by position.
+  readonly boardColumns = signal<Column[]>([]);
+  // Tasks bucketed by column id. A plain writable signal (not computed from a
+  // flat task list) so drag-and-drop can mutate a column's array in place and
+  // then re-set the Map, mirroring how CDK expects to work with the bound arrays.
+  readonly tasksByColumn = signal<Map<number, Task[]>>(new Map());
+  readonly dropListIds = computed(() => this.boardColumns().map((c) => `dropList-${c.id}`));
+  private readonly columnsById = computed(() => new Map(this.boardColumns().map((c) => [c.id, c])));
+
+  // Which column's "+" button was clicked — also which column the add-task
   // form is currently targeting. null means the form is closed.
-  readonly addTaskStatus = signal<TaskStatus | null>(null);
+  readonly addTaskColumnId = signal<number | null>(null);
   readonly errorMessage = signal<string | null>(null);
   readonly selectedTask = signal<Task | null>(null);
+
+  readonly addingColumn = signal(false);
+  readonly newColumnName = signal('');
+  readonly editingColumnId = signal<number | null>(null);
+  readonly editingColumnName = signal('');
+  readonly columnError = signal<string | null>(null);
 
   // Derived from the project's own member list (already fetched via getProject),
   // not a separate request. This only controls what the UI shows — the API
@@ -93,8 +94,11 @@ export class ProjectBoard implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.projectId = Number(this.route.snapshot.paramMap.get('id'));
-    this.projectService.getProject(this.projectId).subscribe((project) => this.project.set(project));
-    this.loadTasks();
+    this.projectService.getProject(this.projectId).subscribe((project) => {
+      this.project.set(project);
+      this.boardColumns.set([...project.columns].sort((a, b) => a.position - b.position));
+      this.loadTasks();
+    });
 
     this.webSocketService.connect(this.projectId);
     this.webSocketService.messages$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
@@ -104,6 +108,16 @@ export class ProjectBoard implements OnInit, OnDestroy {
       // forwarded via lastWsEvent for the panel to react to.
       if (event.event === 'task_created' || event.event === 'task_updated' || event.event === 'task_deleted') {
         this.loadTasks();
+      } else if (event.event === 'columns_reordered') {
+        // The backend excludes the acting user's own sockets from this broadcast
+        // (see manager.broadcast's exclude_user_id), so receiving this at all means
+        // the reorder came from someone else — always safe to refetch and apply.
+        this.refetchColumns();
+      } else if (event.event === 'mention_added') {
+        // Sent only to the mentioned user (see manager.broadcast_to_user), so a
+        // full task refetch is enough to pick up the new has_unread_mentions flag
+        // and light up the badge on whichever card it belongs to.
+        this.loadTasks();
       }
     });
   }
@@ -112,13 +126,19 @@ export class ProjectBoard implements OnInit, OnDestroy {
     this.webSocketService.disconnect();
   }
 
+  private groupByColumn(tasks: Task[]): Map<number, Task[]> {
+    const map = new Map<number, Task[]>();
+    for (const column of this.boardColumns()) map.set(column.id, []);
+    for (const task of tasks) {
+      const list = map.get(task.column_id);
+      if (list) list.push(task);
+    }
+    return map;
+  }
+
   loadTasks(): void {
     this.taskService.listProjectTasks(this.projectId).subscribe((tasks) => {
-      const grouped = emptyColumns();
-      for (const task of tasks) {
-        grouped[task.status].push(task);
-      }
-      this.columns.set(grouped);
+      this.tasksByColumn.set(this.groupByColumn(tasks));
 
       // The detail panel's task is a separate signal (see onTaskUpdated) — if it's
       // currently open, keep it in sync too, so a remote edit doesn't leave the open
@@ -131,22 +151,33 @@ export class ProjectBoard implements OnInit, OnDestroy {
     });
   }
 
-  openAddTaskForm(status: TaskStatus): void {
-    this.addTaskStatus.set(status);
+  tasksFor(columnId: number): Task[] {
+    return this.tasksByColumn().get(columnId) ?? [];
+  }
+
+  private refetchColumns(): void {
+    this.projectService.getProject(this.projectId).subscribe((project) => {
+      this.boardColumns.set([...project.columns].sort((a, b) => a.position - b.position));
+    });
+  }
+
+  openAddTaskForm(columnId: number): void {
+    this.addTaskColumnId.set(columnId);
   }
 
   closeAddTaskForm(): void {
-    this.addTaskStatus.set(null);
+    this.addTaskColumnId.set(null);
     this.taskForm.reset();
   }
 
-  columnLabel(status: TaskStatus | null): string {
-    return this.statuses.find((s) => s.value === status)?.label ?? '';
+  columnLabel(columnId: number | null): string {
+    if (columnId === null) return '';
+    return this.columnsById().get(columnId)?.name ?? '';
   }
 
   addTask(): void {
-    const status = this.addTaskStatus();
-    if (status === null) return;
+    const columnId = this.addTaskColumnId();
+    if (columnId === null) return;
 
     if (this.taskForm.invalid) {
       this.taskForm.markAllAsTouched();
@@ -159,12 +190,15 @@ export class ProjectBoard implements OnInit, OnDestroy {
         project_id: this.projectId,
         title: title!,
         description: description || null,
-        status,
+        column_id: columnId,
         due_date: this.combineDateTime(due_date, due_time),
       })
       .subscribe((task) => {
-        const current = this.columns();
-        this.columns.set({ ...current, [status]: [task, ...current[status]] });
+        this.tasksByColumn.update((current) => {
+          const next = new Map(current);
+          next.set(columnId, [task, ...(next.get(columnId) ?? [])]);
+          return next;
+        });
         this.closeAddTaskForm();
       });
   }
@@ -177,17 +211,24 @@ export class ProjectBoard implements OnInit, OnDestroy {
     return new Date(`${date}T${time || '00:00'}:00`).toISOString();
   }
 
+  // Columns are freeform now, so there's no structural "done" state to check.
+  // As a pragmatic default, a column literally named "Done" (case-insensitive —
+  // matches the starter column every project gets) suppresses the overdue flag;
+  // any other column name doesn't, which fails safe (over-flagging rather than
+  // silently hiding a real overdue task).
   isOverdue(task: Task): boolean {
-    if (!task.due_date || task.status === 'done') return false;
+    if (!task.due_date) return false;
+    const column = this.columnsById().get(task.column_id);
+    if (column?.name.trim().toLowerCase() === 'done') return false;
     return new Date(task.due_date) < new Date();
   }
 
   deleteTask(task: Task): void {
     this.taskService.deleteTask(task.id).subscribe(() => {
-      const current = this.columns();
-      this.columns.set({
-        ...current,
-        [task.status]: current[task.status].filter((t) => t.id !== task.id),
+      this.tasksByColumn.update((current) => {
+        const next = new Map(current);
+        next.set(task.column_id, (next.get(task.column_id) ?? []).filter((t) => t.id !== task.id));
+        return next;
       });
     });
   }
@@ -201,10 +242,26 @@ export class ProjectBoard implements OnInit, OnDestroy {
   // both the open panel and the card sitting in its column need the new data.
   onTaskUpdated(updated: Task): void {
     this.selectedTask.set(updated);
-    this.columns.update((current) => ({
-      ...current,
-      [updated.status]: current[updated.status].map((t) => (t.id === updated.id ? updated : t)),
-    }));
+    this.tasksByColumn.update((current) => {
+      const next = new Map(current);
+      const targetList = next.get(updated.column_id);
+
+      if (targetList && targetList.some((t) => t.id === updated.id)) {
+        next.set(updated.column_id, targetList.map((t) => (t.id === updated.id ? updated : t)));
+        return next;
+      }
+
+      // The task's column changed since this map was last built (e.g. moved from
+      // another tab) — remove it from wherever it currently sits and append it
+      // to its new column instead of replacing in place.
+      for (const [columnId, list] of next) {
+        if (list.some((t) => t.id === updated.id)) {
+          next.set(columnId, list.filter((t) => t.id !== updated.id));
+        }
+      }
+      next.set(updated.column_id, [...(next.get(updated.column_id) ?? []), updated]);
+      return next;
+    });
   }
 
   onDeleteClick(event: Event, task: Task): void {
@@ -214,33 +271,119 @@ export class ProjectBoard implements OnInit, OnDestroy {
     this.deleteTask(task);
   }
 
-  drop(event: CdkDragDrop<Task[]>, targetStatus: TaskStatus): void {
+  drop(event: CdkDragDrop<Task[]>, targetColumnId: number): void {
     const previousList = event.previousContainer.data;
     const currentList = event.container.data;
 
-    // Dropped in the same column: just reorder, no status change, no API call.
+    // Dropped in the same column: just reorder, no column change, no API call.
     if (event.previousContainer === event.container) {
       moveItemInArray(currentList, event.previousIndex, event.currentIndex);
-      this.columns.set({ ...this.columns() });
+      this.tasksByColumn.update((current) => new Map(current));
       return;
     }
 
     const task = event.item.data as Task;
-    const previousStatus = task.status;
+    const previousColumnId = task.column_id;
 
     // Optimistic update: move the task in the UI immediately, before the API confirms it.
     transferArrayItem(previousList, currentList, event.previousIndex, event.currentIndex);
-    task.status = targetStatus;
-    this.columns.set({ ...this.columns() });
+    task.column_id = targetColumnId;
+    this.tasksByColumn.update((current) => new Map(current));
 
-    this.taskService.updateTask(task.id, { status: targetStatus }).subscribe({
+    this.taskService.updateTask(task.id, { column_id: targetColumnId }).subscribe({
       error: () => {
-        // Revert: move the task back to where it came from and restore its status.
+        // Revert: move the task back to where it came from and restore its column.
         transferArrayItem(currentList, previousList, event.currentIndex, event.previousIndex);
-        task.status = previousStatus;
-        this.columns.set({ ...this.columns() });
+        task.column_id = previousColumnId;
+        this.tasksByColumn.update((current) => new Map(current));
         this.errorMessage.set('Could not move task — please try again.');
         setTimeout(() => this.errorMessage.set(null), 3000);
+      },
+    });
+  }
+
+  dropColumn(event: CdkDragDrop<Column[]>): void {
+    if (event.previousIndex === event.currentIndex) return;
+
+    const previousOrder = this.boardColumns();
+    const reordered = [...previousOrder];
+    moveItemInArray(reordered, event.previousIndex, event.currentIndex);
+
+    // Optimistic update, same pattern as task drag-and-drop: reorder locally first,
+    // persist in the background, revert on failure.
+    this.boardColumns.set(reordered);
+
+    this.columnService
+      .reorderColumns(this.projectId, { column_ids: reordered.map((c) => c.id) })
+      .subscribe({
+        error: () => {
+          this.boardColumns.set(previousOrder);
+          this.columnError.set('Could not reorder columns — please try again.');
+          setTimeout(() => this.columnError.set(null), 3000);
+        },
+      });
+  }
+
+  startAddColumn(): void {
+    this.addingColumn.set(true);
+  }
+
+  cancelAddColumn(): void {
+    this.addingColumn.set(false);
+    this.newColumnName.set('');
+  }
+
+  submitAddColumn(): void {
+    const name = this.newColumnName().trim();
+    if (!name) return;
+
+    this.columnService.createColumn(this.projectId, { name }).subscribe((column) => {
+      this.boardColumns.update((cols) => [...cols, column]);
+      this.tasksByColumn.update((current) => {
+        const next = new Map(current);
+        next.set(column.id, []);
+        return next;
+      });
+      this.cancelAddColumn();
+    });
+  }
+
+  startEditColumn(column: Column): void {
+    this.editingColumnId.set(column.id);
+    this.editingColumnName.set(column.name);
+  }
+
+  cancelEditColumn(): void {
+    this.editingColumnId.set(null);
+  }
+
+  saveColumnName(column: Column): void {
+    const name = this.editingColumnName().trim();
+    if (!name || name === column.name) {
+      this.editingColumnId.set(null);
+      return;
+    }
+
+    this.columnService.updateColumn(column.id, { name }).subscribe((updated) => {
+      this.boardColumns.update((cols) => cols.map((c) => (c.id === updated.id ? updated : c)));
+      this.editingColumnId.set(null);
+    });
+  }
+
+  deleteColumn(column: Column): void {
+    this.columnError.set(null);
+    this.columnService.deleteColumn(column.id).subscribe({
+      next: () => {
+        this.boardColumns.update((cols) => cols.filter((c) => c.id !== column.id));
+        this.tasksByColumn.update((current) => {
+          const next = new Map(current);
+          next.delete(column.id);
+          return next;
+        });
+      },
+      error: (err) => {
+        this.columnError.set(err?.error?.detail ?? 'Could not delete column — please try again.');
+        setTimeout(() => this.columnError.set(null), 4000);
       },
     });
   }

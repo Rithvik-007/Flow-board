@@ -101,7 +101,7 @@ async def delete_subtask(
     subtask = _get_subtask_or_404(db, subtask_id)
     task = get_task_or_404(db, subtask.task_id)
     member = verify_project_membership(db, task.project_id, current_user.id)
-    require_role(member, ProjectRole.owner, ProjectRole.member)
+    require_role(member, ProjectRole.owner)
 
     task_id = task.id
     db.delete(subtask)

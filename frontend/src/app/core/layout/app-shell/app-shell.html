@@ -14,6 +14,19 @@
             Projects
           </a>
         </li>
+        <li>
+          <a
+            routerLink="/invites"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: false }"
+            (click)="closeMobileNav()"
+          >
+            Invites
+            @if (pendingInviteCount() > 0) {
+              <span class="nav-badge">{{ pendingInviteCount() }}</span>
+            }
+          </a>
+        </li>
       </ul>
     </nav>
 

@@ -1,19 +1,20 @@
 .panel-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.55);
   display: flex;
   justify-content: flex-end;
   z-index: 50;
 }
 
 .panel {
-  background: white;
+  background: var(--card);
+  color: var(--ink);
   width: min(420px, 100%);
   height: 100%;
   overflow-y: auto;
   padding: 1.5rem;
-  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.4);
 }
 
 .panel-header {
@@ -26,20 +27,78 @@
 .panel-header h2 {
   margin: 0;
   font-size: 1.2rem;
+  color: var(--ink);
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.editing-label {
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
+  font-weight: 500;
 }
 
 .close-btn,
-.remove-btn {
+.remove-btn,
+.edit-btn {
   background: none;
   border: none;
   font-size: 1.1rem;
   line-height: 1;
   cursor: pointer;
-  color: #888;
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
+}
+
+.close-btn:hover,
+.remove-btn:hover,
+.edit-btn:hover {
+  color: var(--pin);
+}
+
+.edit-btn {
+  font-size: 0.9rem;
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1.5rem;
+}
+
+.edit-form label {
+  font-size: 0.85rem;
+  color: color-mix(in srgb, var(--ink) 65%, transparent);
+}
+
+.edit-form input,
+.edit-form textarea {
+  padding: 0.4rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  background: var(--board);
+  color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
+  border-radius: 3px;
+}
+
+.field-error {
+  color: var(--pin);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.edit-form .form-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
 }
 
 .description {
-  color: #555;
+  color: color-mix(in srgb, var(--ink) 70%, transparent);
   font-size: 0.9rem;
   margin-bottom: 1.5rem;
 }
@@ -53,12 +112,17 @@
 
 .priority-field label {
   font-size: 0.85rem;
-  color: #555;
+  color: color-mix(in srgb, var(--ink) 65%, transparent);
 }
 
 .priority-field select {
   padding: 0.3rem 0.5rem;
   font-size: 0.9rem;
+  font-family: inherit;
+  background: var(--board);
+  color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
+  border-radius: 3px;
 }
 
 .due-date-field {
@@ -68,7 +132,7 @@
 .due-date-field label {
   display: block;
   font-size: 0.85rem;
-  color: #555;
+  color: color-mix(in srgb, var(--ink) 65%, transparent);
   margin-bottom: 0.35rem;
 }
 
@@ -81,20 +145,30 @@
 .due-date-inputs input {
   padding: 0.3rem 0.5rem;
   font-size: 0.9rem;
+  font-family: inherit;
+  background: var(--board);
+  color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
+  border-radius: 3px;
 }
 
 .clear-btn {
   background: none;
   border: none;
-  color: #888;
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
   font-size: 0.8rem;
   cursor: pointer;
   text-decoration: underline;
 }
 
+.clear-btn:hover {
+  color: var(--pin);
+}
+
 h3 {
   font-size: 0.95rem;
   margin: 1.5rem 0 0.5rem;
+  color: var(--ink);
 }
 
 .subtask-list,
@@ -120,11 +194,11 @@ h3 {
 
 .subtask-item .done {
   text-decoration: line-through;
-  color: #999;
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
 }
 
 .empty {
-  color: #888;
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
   font-size: 0.85rem;
 }
 
@@ -143,13 +217,78 @@ h3 {
   flex: 1;
   padding: 0.4rem;
   font-size: 0.9rem;
+  font-family: inherit;
+  background: var(--board);
+  color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
+  border-radius: 3px;
+}
+
+.comment-input-wrap {
+  position: relative;
+}
+
+.comment-input-wrap textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.mention-dropdown {
+  position: absolute;
+  z-index: 10;
+  bottom: calc(100% + 0.25rem);
+  left: 0;
+  right: 0;
+  max-height: 180px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0.3rem;
+  list-style: none;
+  background: var(--board);
+  border: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
+  border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+}
+
+.mention-dropdown button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  color: var(--ink);
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mention-dropdown button:hover,
+.mention-dropdown button:focus-visible {
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+}
+
+.mention-avatar {
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--sand);
+  color: var(--board);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
 }
 
 .comment-item {
   display: flex;
   gap: 0.6rem;
   padding: 0.6rem 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
 }
 
 .avatar {
@@ -157,8 +296,8 @@ h3 {
   width: 2rem;
   height: 2rem;
   border-radius: 50%;
-  background: #dce6ee;
-  color: #2e5c8a;
+  background: var(--sand);
+  color: var(--board);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -177,11 +316,12 @@ h3 {
 }
 
 .timestamp {
-  color: #999;
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
   font-size: 0.8rem;
 }
 
 .comment-body p {
   margin: 0.2rem 0 0;
   font-size: 0.9rem;
+  color: color-mix(in srgb, var(--ink) 85%, transparent);
 }

@@ -1,7 +1,6 @@
 .board-page {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 2rem 1.5rem;
+  color: var(--ink);
 }
 
 header {
@@ -12,19 +11,72 @@ header {
 }
 
 .back-link {
-  display: block;
-  margin-bottom: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+  padding: 0.3rem 0.75rem 0.3rem 0.55rem;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
+  text-decoration: none;
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  border-radius: 999px;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.back-link:hover {
+  color: var(--pin);
+  background: color-mix(in srgb, var(--pin) 15%, transparent);
+  transform: translateX(-2px);
 }
 
 header h1 {
-  margin: 0.25rem 0 0;
+  margin: 0;
   display: inline-block;
+}
+
+.project-title {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.25rem;
 }
 
 .header-actions {
   display: flex;
   align-items: center;
   gap: 1rem;
+}
+
+.settings-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  font-size: 1.2rem;
+  line-height: 1;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: background 0.15s ease;
+}
+
+.settings-link:hover,
+.settings-link:focus-visible {
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+}
+
+.settings-link:focus-visible {
+  outline: 2px solid var(--sand);
+  outline-offset: 2px;
 }
 
 .role-badge {
@@ -38,18 +90,18 @@ header h1 {
 }
 
 .role-owner {
-  background: #e6f4ea;
-  color: #1e7e34;
+  background: color-mix(in srgb, var(--moss) 18%, transparent);
+  color: var(--moss);
 }
 
 .role-member {
-  background: #e8f0fe;
-  color: #1a56c4;
+  background: color-mix(in srgb, var(--sand) 18%, transparent);
+  color: var(--sand);
 }
 
 .role-viewer {
-  background: #f1f1f1;
-  color: #666;
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  color: color-mix(in srgb, var(--ink) 65%, transparent);
 }
 
 .connection-lost {
@@ -60,8 +112,8 @@ header h1 {
   font-size: 0.75rem;
   font-weight: 600;
   vertical-align: middle;
-  background: #fdecea;
-  color: #c0392b;
+  background: color-mix(in srgb, var(--pin) 18%, transparent);
+  color: var(--pin);
 }
 
 /* Styled like a small note card pinned to the corkboard — the same "index
@@ -71,11 +123,11 @@ header h1 {
   max-width: 420px;
   margin: 0 0 1.5rem;
   padding: 0.85rem 1rem 0.95rem;
-  background: var(--card, #fbf8f2);
+  background: var(--card);
   border-radius: 2px;
   box-shadow:
-    3px 4px 0 rgba(43, 39, 37, 0.08),
-    0 8px 16px rgba(43, 39, 37, 0.16);
+    3px 4px 0 rgba(0, 0, 0, 0.25),
+    0 8px 16px rgba(0, 0, 0, 0.4);
   transform: rotate(-1deg);
 }
 
@@ -88,7 +140,7 @@ header h1 {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: var(--pin, #c1443c);
+  background: var(--pin);
   box-shadow:
     0 1px 2px rgba(0, 0, 0, 0.4),
     inset 0 -1px 1px rgba(0, 0, 0, 0.25),
@@ -102,7 +154,7 @@ header h1 {
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: rgba(33, 29, 26, 0.5);
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
   margin-bottom: 0.35rem;
 }
 
@@ -111,7 +163,7 @@ header h1 {
   font-family: var(--font-body, sans-serif);
   font-size: 0.92rem;
   line-height: 1.5;
-  color: rgba(33, 29, 26, 0.85);
+  color: color-mix(in srgb, var(--ink) 88%, transparent);
 }
 
 .add-task-form {
@@ -120,19 +172,26 @@ header h1 {
   gap: 0.5rem;
   margin-bottom: 1.5rem;
   padding: 1rem;
-  border: 1px solid #ddd;
+  background: var(--card);
+  border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
   border-radius: 6px;
 }
 
 .add-task-form h3 {
   margin: 0 0 0.25rem;
   font-size: 1rem;
+  color: var(--ink);
 }
 
 .add-task-form input,
 .add-task-form textarea {
   padding: 0.5rem;
   font-size: 1rem;
+  font-family: inherit;
+  background: var(--board);
+  color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
+  border-radius: 3px;
 }
 
 .due-date-inputs {
@@ -151,30 +210,117 @@ header h1 {
 }
 
 .field-error {
-  color: #c0392b;
+  color: var(--pin);
   font-size: 0.85rem;
   margin: 0;
 }
 
 .board {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  /* Grid items default to "stretch", which forces every column to match the
-     tallest one. "start" lets each column size to its own content instead. */
+  display: flex;
   align-items: start;
+  gap: 1rem;
+  /* Columns are user-managed now (add/remove at will), so the board scrolls
+     horizontally instead of assuming a fixed count that fits one row. */
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
 }
 
 .column {
-  background: #f5f5f5;
+  flex: 0 0 260px;
+  width: 260px;
+  background: var(--board);
   border-radius: 6px;
   padding: 0.75rem;
   min-height: 200px;
 }
 
-.column h2 {
+.column-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.column-header.draggable {
+  cursor: grab;
+}
+
+.column-header.draggable:active {
+  cursor: grabbing;
+}
+
+.column-header h2 {
   font-size: 1rem;
-  margin-top: 0;
+  margin: 0;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.column-header h2.editable {
+  cursor: pointer;
+  border-bottom: 1px dashed transparent;
+}
+
+.column-header h2.editable:hover {
+  border-bottom-color: color-mix(in srgb, var(--ink) 40%, transparent);
+}
+
+.column-name-input {
+  flex: 1;
+  padding: 0.25rem 0.4rem;
+  font-size: 1rem;
+  font-family: inherit;
+  background: var(--card);
+  color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--ink) 25%, transparent);
+  border-radius: 3px;
+}
+
+.delete-column-btn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.delete-column-btn:hover:not(:disabled) {
+  color: var(--pin);
+}
+
+.delete-column-btn:disabled {
+  color: color-mix(in srgb, var(--ink) 25%, transparent);
+  cursor: not-allowed;
+}
+
+.add-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+  gap: 0.5rem;
+  background: transparent;
+  border: 2px dashed color-mix(in srgb, var(--ink) 25%, transparent);
+  min-height: 60px;
+}
+
+.add-column-btn {
+  background: none;
+  border: none;
+  color: color-mix(in srgb, var(--ink) 65%, transparent);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.add-column-btn:hover {
+  color: var(--pin);
 }
 
 .drop-list {
@@ -185,17 +331,29 @@ header h1 {
 
 .task-card {
   position: relative;
-  background: white;
-  border: 1px solid #ddd;
+  background: var(--card);
+  border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
   border-radius: 6px;
   padding: 0.6rem;
   padding-right: 1.9rem;
   margin-bottom: 0.6rem;
   cursor: grab;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 .task-card.viewer {
   cursor: pointer;
+}
+
+.mention-badge {
+  position: absolute;
+  top: 0.55rem;
+  left: 0.55rem;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--sand);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--sand) 35%, transparent);
 }
 
 .priority-dot {
@@ -213,11 +371,11 @@ header h1 {
 }
 
 .priority-low {
-  background: var(--moss, #5c7a5e);
+  background: var(--moss);
 }
 
 .priority-medium {
-  background: var(--sand, #c9a227);
+  background: var(--sand);
 }
 
 .priority-high {
@@ -234,15 +392,15 @@ header h1 {
   height: 30px;
   border-radius: 50%;
   border: none;
-  background: var(--pin, #c1443c);
-  color: #fff;
+  background: var(--pin);
+  color: var(--board);
   font-size: 1.2rem;
   line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(43, 39, 37, 0.25);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
   transition:
     filter 0.15s ease,
     transform 0.15s ease;
@@ -254,7 +412,7 @@ header h1 {
 }
 
 .add-card-btn:focus-visible {
-  outline: 2px solid var(--sand, #c9a227);
+  outline: 2px solid var(--sand);
   outline-offset: 2px;
 }
 
@@ -263,8 +421,8 @@ header h1 {
 
 .cdk-drag-preview {
   box-sizing: border-box;
-  box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2), 0 8px 10px 1px rgba(0, 0, 0, 0.14),
-    0 3px 14px 2px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.35), 0 8px 10px 1px rgba(0, 0, 0, 0.3),
+    0 3px 14px 2px rgba(0, 0, 0, 0.25);
 }
 
 .cdk-drag-placeholder {
@@ -279,8 +437,12 @@ header h1 {
   transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
 }
 
+.board.cdk-drop-list-dragging .column:not(.cdk-drag-placeholder) {
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
 .drag-error {
-  color: #c0392b;
+  color: var(--pin);
   font-weight: 500;
   margin: 0 0 1rem;
 }
@@ -288,19 +450,24 @@ header h1 {
 .task-card p {
   margin: 0.25rem 0;
   font-size: 0.9rem;
-  color: #555;
+  color: color-mix(in srgb, var(--ink) 70%, transparent);
 }
 
 .due-date {
-  display: inline-block;
+  display: block;
   margin-top: 0.35rem;
   font-family: var(--font-mono, monospace);
   font-size: 0.75rem;
-  color: #777;
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
 }
 
 .due-date.overdue {
-  color: var(--pin, #c1443c);
+  color: var(--pin);
+  font-weight: 600;
+}
+
+.due-label {
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
   font-weight: 600;
 }
 
@@ -312,7 +479,48 @@ header h1 {
   gap: 0.5rem;
 }
 
+.delete-task-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.7rem;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+  border-radius: 4px;
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.15s ease;
+}
+
+.delete-task-btn:hover {
+  color: var(--pin);
+  background: color-mix(in srgb, var(--pin) 12%, transparent);
+  border-color: color-mix(in srgb, var(--pin) 30%, transparent);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
+}
+
+.delete-task-btn:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: none;
+}
+
+.delete-task-btn:focus-visible {
+  outline: 2px solid var(--pin);
+  outline-offset: 2px;
+}
+
 .empty-column {
-  color: #888;
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
   font-size: 0.9rem;
 }

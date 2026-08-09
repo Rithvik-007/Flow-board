@@ -1,0 +1,48 @@
+<div class="invites-page">
+  <header>
+    <h1>Pending invites</h1>
+  </header>
+
+  @if (errorMessage()) {
+    <p class="field-error">{{ errorMessage() }}</p>
+  }
+
+  @if (loaded()) {
+    <ul class="invite-list">
+      @for (invite of invites(); track invite.id) {
+        <li class="invite-row">
+          <span class="avatar">{{ initials(invite.inviter.name) }}</span>
+
+          <div class="invite-info">
+            <strong>{{ invite.project.name }}</strong>
+            <span class="meta">
+              Invited by {{ invite.inviter.name }} as
+              <span class="role-tag">{{ invite.role }}</span>
+            </span>
+          </div>
+
+          <div class="invite-actions">
+            <button
+              class="btn-accept"
+              type="button"
+              [disabled]="actingOnId() === invite.id"
+              (click)="accept(invite)"
+            >
+              Accept
+            </button>
+            <button
+              class="btn-decline"
+              type="button"
+              [disabled]="actingOnId() === invite.id"
+              (click)="decline(invite)"
+            >
+              Decline
+            </button>
+          </div>
+        </li>
+      } @empty {
+        <p class="empty">You don't have any pending invites.</p>
+      }
+    </ul>
+  }
+</div>

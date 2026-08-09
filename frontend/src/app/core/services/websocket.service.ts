@@ -11,11 +11,16 @@ export type WsEventType =
   | 'subtask_updated'
   | 'subtask_deleted'
   | 'comment_added'
-  | 'comment_deleted';
+  | 'comment_deleted'
+  | 'columns_reordered'
+  | 'mention_added';
 
 export interface WsEvent {
   event: WsEventType;
   task_id: number;
+  // Present on columns_reordered and mention_added — task_id alone isn't enough
+  // to know which project's board to refresh for either of those.
+  project_id?: number;
 }
 
 const MAX_RECONNECT_ATTEMPTS = 5;

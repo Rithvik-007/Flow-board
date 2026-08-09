@@ -1,12 +1,12 @@
 /* You can add global styles to this file, and also import other style files */
 
 :root {
-  --board: #2b2725;
-  --card: #fbf8f2;
-  --ink: #211d1a;
-  --pin: #c1443c;
-  --moss: #5c7a5e;
-  --sand: #c9a227;
+  --board: #1a1816;
+  --card: #252220;
+  --ink: #ede8e0;
+  --pin: #e85a4f;
+  --moss: #6fbf73;
+  --sand: #e8b84b;
 
   --font-heading: 'Roboto Slab', Georgia, serif;
   --font-body: 'Inter', 'Work Sans', -apple-system, BlinkMacSystemFont, sans-serif;

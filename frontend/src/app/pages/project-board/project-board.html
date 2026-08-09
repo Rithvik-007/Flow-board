@@ -2,18 +2,25 @@
   <header>
     <div>
       <a routerLink="/projects" class="back-link">&larr; Back to projects</a>
-      <h1>{{ project()?.name }}</h1>
-      @if (myRole(); as role) {
-        <span class="role-badge" [class]="'role-' + role">{{ role | titlecase }}</span>
-      }
-      @if (connectionLost()) {
-        <span class="connection-lost">Connection lost — live updates paused</span>
-      }
+      <div class="project-title">
+        <h1>{{ project()?.name }}</h1>
+        @if (myRole(); as role) {
+          <span class="role-badge" [class]="'role-' + role">{{ role | titlecase }}</span>
+        }
+        @if (connectionLost()) {
+          <span class="connection-lost">Connection lost — live updates paused</span>
+        }
+      </div>
     </div>
     <div class="header-actions">
-      @if (isOwner()) {
-        <a [routerLink]="['/projects', project()?.id, 'settings']">Settings</a>
-      }
+      <a
+        class="settings-link"
+        [routerLink]="['/projects', project()?.id, 'settings']"
+        title="Project settings"
+        aria-label="Project settings"
+      >
+        &#9881;&#65039;
+      </a>
     </div>
   </header>
 
@@ -25,9 +32,9 @@
     </div>
   }
 
-  @if (addTaskStatus(); as status) {
+  @if (addTaskColumnId(); as columnId) {
     <form class="add-task-form" [formGroup]="taskForm" (ngSubmit)="addTask()">
-      <h3>New task in {{ columnLabel(status) }}</h3>
+      <h3>New task in {{ columnLabel(columnId) }}</h3>
 
       <label for="title">Task title</label>
       <input id="title" type="text" formControlName="title" />
@@ -55,20 +62,67 @@
     <p class="drag-error">{{ errorMessage() }}</p>
   }
 
-  <div class="board">
-    @for (statusDef of statuses; track statusDef.value) {
-      <div class="column">
-        <h2>{{ statusDef.label }}</h2>
+  @if (columnError()) {
+    <p class="drag-error">{{ columnError() }}</p>
+  }
+
+  <div
+    class="board"
+    cdkDropList
+    cdkDropListOrientation="horizontal"
+    [cdkDropListDisabled]="isViewer()"
+    (cdkDropListDropped)="dropColumn($event)"
+  >
+    @for (column of boardColumns(); track column.id) {
+      <div class="column" cdkDrag [cdkDragDisabled]="isViewer()">
+        <div class="column-header" cdkDragHandle [class.draggable]="!isViewer()">
+          @if (editingColumnId() === column.id) {
+            <input
+              class="column-name-input"
+              type="text"
+              [value]="editingColumnName()"
+              (input)="editingColumnName.set($any($event.target).value)"
+              (keydown.enter)="saveColumnName(column)"
+              (keydown.escape)="cancelEditColumn()"
+              (blur)="saveColumnName(column)"
+            />
+          } @else {
+            <h2
+              [class.editable]="!isViewer()"
+              [title]="!isViewer() ? 'Click to rename' : ''"
+              (click)="!isViewer() && startEditColumn(column)"
+            >
+              {{ column.name }}
+            </h2>
+          }
+          @if (isOwner()) {
+            <button
+              class="delete-column-btn"
+              type="button"
+              [disabled]="tasksFor(column.id).length > 0"
+              [attr.aria-label]="'Delete column ' + column.name"
+              [title]="
+                tasksFor(column.id).length > 0
+                  ? 'Move or delete all tasks in this column first'
+                  : 'Delete column'
+              "
+              (click)="deleteColumn(column)"
+            >
+              &times;
+            </button>
+          }
+        </div>
+
         <div
           class="drop-list"
           cdkDropList
-          [id]="'dropList-' + statusDef.value"
-          [cdkDropListData]="columns()[statusDef.value]"
-          [cdkDropListConnectedTo]="dropListIds"
+          [id]="'dropList-' + column.id"
+          [cdkDropListData]="tasksFor(column.id)"
+          [cdkDropListConnectedTo]="dropListIds()"
           [cdkDropListDisabled]="isViewer()"
-          (cdkDropListDropped)="drop($event, statusDef.value)"
+          (cdkDropListDropped)="drop($event, column.id)"
         >
-          @for (task of columns()[statusDef.value]; track task.id) {
+          @for (task of tasksFor(column.id); track task.id) {
             <div
               class="task-card"
               cdkDrag
@@ -77,6 +131,9 @@
               [class.viewer]="isViewer()"
               (click)="openTask(task)"
             >
+              @if (task.has_unread_mentions) {
+                <span class="mention-badge" title="You have an unread mention" aria-label="You have an unread mention"></span>
+              }
               <span
                 class="priority-dot"
                 [class]="'priority-' + task.priority"
@@ -91,14 +148,17 @@
               @if (task.description) {
                 <p>{{ task.description }}</p>
               }
-              @if (task.due_date) {
-                <span class="due-date" [class.overdue]="isOverdue(task)">
+              <span class="due-date" [class.overdue]="task.due_date && isOverdue(task)">
+                <span class="due-label">Due:</span>
+                @if (task.due_date) {
                   {{ task.due_date | dueDate }}
-                </span>
-              }
-              @if (!isViewer()) {
+                } @else {
+                  --
+                }
+              </span>
+              @if (isOwner()) {
                 <div class="task-actions">
-                  <button (click)="onDeleteClick($event, task)">Delete</button>
+                  <button class="delete-task-btn" (click)="onDeleteClick($event, task)">🗑 Delete</button>
                 </div>
               }
             </div>
@@ -110,14 +170,36 @@
             <button
               class="add-card-btn"
               type="button"
-              [attr.aria-label]="'Add task to ' + statusDef.label"
-              [title]="'Add task to ' + statusDef.label"
-              (click)="openAddTaskForm(statusDef.value)"
+              [attr.aria-label]="'Add task to ' + column.name"
+              [title]="'Add task to ' + column.name"
+              (click)="openAddTaskForm(column.id)"
             >
               +
             </button>
           }
         </div>
+      </div>
+    }
+
+    @if (!isViewer()) {
+      <div class="column add-column">
+        @if (addingColumn()) {
+          <input
+            class="column-name-input"
+            type="text"
+            placeholder="Column name"
+            [value]="newColumnName()"
+            (input)="newColumnName.set($any($event.target).value)"
+            (keydown.enter)="submitAddColumn()"
+            (keydown.escape)="cancelAddColumn()"
+          />
+          <div class="form-actions">
+            <button type="button" (click)="submitAddColumn()">Add</button>
+            <button type="button" (click)="cancelAddColumn()">Cancel</button>
+          </div>
+        } @else {
+          <button class="add-column-btn" type="button" (click)="startAddColumn()">+ Add column</button>
+        }
       </div>
     }
   </div>
@@ -126,6 +208,8 @@
     <app-task-detail-panel
       [task]="task"
       [isViewer]="isViewer()"
+      [isOwner]="isOwner()"
+      [members]="project()?.members ?? []"
       [wsEvent]="lastWsEvent()"
       (closed)="selectedTask.set(null)"
       (taskUpdated)="onTaskUpdated($event)"

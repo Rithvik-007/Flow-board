@@ -24,6 +24,10 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/projects/projects').then((m) => m.Projects),
       },
       {
+        path: 'invites',
+        loadComponent: () => import('./pages/invites/invites').then((m) => m.Invites),
+      },
+      {
         path: 'projects/:id',
         loadComponent: () =>
           import('./pages/project-board/project-board').then((m) => m.ProjectBoard),

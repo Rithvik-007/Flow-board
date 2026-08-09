@@ -1,0 +1,127 @@
+.invites-page {
+  padding: 2rem 1.5rem;
+  color: var(--ink);
+}
+
+header {
+  margin-bottom: 1.5rem;
+}
+
+header h1 {
+  margin: 0;
+}
+
+.field-error {
+  color: var(--pin);
+  font-size: 0.85rem;
+  margin: 0 0 1rem;
+}
+
+.invite-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-width: 560px;
+}
+
+.invite-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  background: var(--card);
+  border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+  border-radius: 6px;
+  padding: 0.75rem 0.9rem;
+}
+
+.avatar {
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: var(--sand);
+  color: var(--board);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.invite-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.invite-info strong {
+  font-size: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  font-size: 0.82rem;
+  color: color-mix(in srgb, var(--ink) 60%, transparent);
+}
+
+.role-tag {
+  text-transform: capitalize;
+  font-weight: 600;
+  color: var(--moss);
+}
+
+.invite-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.btn-accept,
+.btn-decline {
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.4rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: filter 0.15s ease, background 0.15s ease;
+}
+
+.btn-accept {
+  background: var(--moss);
+  color: var(--board);
+  border: none;
+}
+
+.btn-accept:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.btn-decline {
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--ink) 25%, transparent);
+  color: var(--ink);
+}
+
+.btn-decline:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--pin) 15%, transparent);
+  border-color: var(--pin);
+  color: var(--pin);
+}
+
+.btn-accept:disabled,
+.btn-decline:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.empty {
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
+  font-size: 0.9rem;
+}

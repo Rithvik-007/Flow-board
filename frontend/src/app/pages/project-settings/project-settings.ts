@@ -1,3 +1,4 @@
+import { TitleCasePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -7,7 +8,7 @@ import { InvitableRole, ProjectDetail, ProjectMember } from '../../core/models/p
 
 @Component({
   selector: 'app-project-settings',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, TitleCasePipe],
   templateUrl: './project-settings.html',
   styleUrl: './project-settings.css',
 })
@@ -31,27 +32,32 @@ export class ProjectSettings implements OnInit {
     () => this.deleteConfirmInput().trim().length > 0 && this.deleteConfirmInput() === this.project()?.name,
   );
 
+  readonly isOwner = computed(() => {
+    const project = this.project();
+    const userId = this.authService.currentUser()?.id;
+    return !!project && project.owner_id === userId;
+  });
+
+  readonly showLeaveConfirm = signal(false);
+  readonly leaveError = signal<string | null>(null);
+
   readonly inviteForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
     role: ['member' as InvitableRole, [Validators.required]],
   });
+  readonly inviteSentMessage = signal<string | null>(null);
 
   private projectId!: number;
 
   ngOnInit(): void {
     this.projectId = Number(this.route.snapshot.paramMap.get('id'));
 
+    // Any member can view this page now (they need it to leave the project) —
+    // owner-only sections (invite form, role/remove controls, danger zone) are
+    // gated in the template via isOwner(). The API independently enforces every
+    // owner-only action regardless of what the UI shows.
     this.projectService.getProject(this.projectId).subscribe((project) => {
       this.project.set(project);
-
-      // Client-side gate only — this just decides what renders. If someone reaches this
-      // route without being the owner, every mutating request below still 403s at the API,
-      // which is the actual boundary.
-      const userId = this.authService.currentUser()?.id;
-      if (project.owner_id !== userId) {
-        this.router.navigate(['/projects', this.projectId]);
-        return;
-      }
     });
 
     this.loadMembers();
@@ -68,20 +74,22 @@ export class ProjectSettings implements OnInit {
     }
 
     this.errorMessage.set(null);
+    this.inviteSentMessage.set(null);
     const { email, role } = this.inviteForm.getRawValue();
     this.projectService.inviteMember(this.projectId, { email: email!, role: role! }).subscribe({
-      next: (member) => {
-        this.members.update((current) => [...current, member]);
+      next: (invite) => {
+        // No membership to add yet — the invite is pending until the recipient
+        // accepts it (see the invites page), so the member list is left as-is.
+        this.inviteSentMessage.set(`Invite sent to ${invite.invited_email}.`);
         this.inviteForm.reset({ email: '', role: 'member' });
       },
       error: (err) => {
         const detail = err?.error?.detail;
         this.errorMessage.set(
-          detail === 'This user is already a member of the project'
+          detail === 'This user is already a member of the project' ||
+            detail === 'This email already has a pending invite to this project'
             ? detail
-            : detail === 'No Flowboard account found for that email'
-              ? detail
-              : 'Could not send invite — please try again.',
+            : 'Could not send invite — please try again.',
         );
       },
     });
@@ -121,6 +129,25 @@ export class ProjectSettings implements OnInit {
     this.projectService.deleteProject(this.projectId).subscribe({
       next: () => this.router.navigate(['/projects']),
       error: () => this.deleteError.set('Could not delete project — please try again.'),
+    });
+  }
+
+  openLeaveConfirm(): void {
+    this.showLeaveConfirm.set(true);
+    this.leaveError.set(null);
+  }
+
+  cancelLeave(): void {
+    this.showLeaveConfirm.set(false);
+  }
+
+  leaveProject(): void {
+    this.leaveError.set(null);
+    this.projectService.leaveProject(this.projectId).subscribe({
+      next: () => this.router.navigate(['/projects']),
+      error: (err) => {
+        this.leaveError.set(err?.error?.detail ?? 'Could not leave project — please try again.');
+      },
     });
   }
 }

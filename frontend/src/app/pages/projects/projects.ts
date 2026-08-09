@@ -5,7 +5,7 @@ import { forkJoin, map, of, switchMap } from 'rxjs';
 import { ProjectService } from '../../core/services/project.service';
 import { TaskService } from '../../core/services/task.service';
 import { AuthService } from '../../core/services/auth.service';
-import { Project, ProjectMember } from '../../core/models/project.model';
+import { Project, ProjectDetail, ProjectMember } from '../../core/models/project.model';
 import { Task } from '../../core/models/task.model';
 import { RelativeTimePipe } from '../../core/pipes/relative-time.pipe';
 
@@ -75,8 +75,8 @@ export class Projects implements OnInit {
             projects.map((project) =>
               forkJoin([
                 this.taskService.listProjectTasks(project.id),
-                this.projectService.listMembers(project.id),
-              ]).pipe(map(([tasks, members]) => this.buildCard(project, tasks, members))),
+                this.projectService.getProject(project.id),
+              ]).pipe(map(([tasks, detail]) => this.buildCard(tasks, detail))),
             ),
           );
         }),
@@ -87,16 +87,22 @@ export class Projects implements OnInit {
       });
   }
 
-  private buildCard(project: Project, tasks: Task[], members: ProjectMember[]): ProjectCardData {
-    const doneCount = tasks.filter((t) => t.status === 'done').length;
+  private buildCard(tasks: Task[], detail: ProjectDetail): ProjectCardData {
+    // There's no structural "done" state now that columns are freeform — a column
+    // literally named "Done" (case-insensitive, matches every project's starter
+    // columns) is used as the completion signal for this stat.
+    const doneColumnIds = new Set(
+      detail.columns.filter((c) => c.name.trim().toLowerCase() === 'done').map((c) => c.id),
+    );
+    const doneCount = tasks.filter((t) => doneColumnIds.has(t.column_id)).length;
     const lastActive = tasks.length
       ? tasks.map((t) => t.created_at).sort().at(-1)!
       : null;
-    const visibleMembers = members.slice(0, 3);
-    const overflowCount = Math.max(0, members.length - visibleMembers.length);
+    const visibleMembers = detail.members.slice(0, 3);
+    const overflowCount = Math.max(0, detail.members.length - visibleMembers.length);
 
     return {
-      project,
+      project: detail,
       taskCount: tasks.length,
       doneCount,
       lastActive,

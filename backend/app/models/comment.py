@@ -18,3 +18,4 @@ class Comment(Base):
 
     task = relationship("Task", back_populates="comments")
     user = relationship("User")
+    mentions = relationship("Mention", back_populates="comment", cascade="all, delete-orphan")

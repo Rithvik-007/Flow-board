@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from '../api.config';
+import { Invite } from '../models/invite.model';
 import {
   MemberInviteRequest,
   MemberRoleUpdateRequest,
@@ -31,8 +32,11 @@ export class ProjectService {
     return this.http.get<ProjectMember[]>(`${API_BASE_URL}/projects/${projectId}/members`);
   }
 
-  inviteMember(projectId: number, request: MemberInviteRequest): Observable<ProjectMember> {
-    return this.http.post<ProjectMember>(`${API_BASE_URL}/projects/${projectId}/invite`, request);
+  // Sends a pending invite — it no longer creates a membership directly. The
+  // invited person shows up as a project member only once they accept it
+  // (see InviteService.accept).
+  inviteMember(projectId: number, request: MemberInviteRequest): Observable<Invite> {
+    return this.http.post<Invite>(`${API_BASE_URL}/projects/${projectId}/invite`, request);
   }
 
   updateMemberRole(
@@ -48,6 +52,10 @@ export class ProjectService {
 
   removeMember(projectId: number, userId: number): Observable<void> {
     return this.http.delete<void>(`${API_BASE_URL}/projects/${projectId}/members/${userId}`);
+  }
+
+  leaveProject(projectId: number): Observable<void> {
+    return this.http.delete<void>(`${API_BASE_URL}/projects/${projectId}/members/me`);
   }
 
   deleteProject(projectId: number): Observable<void> {
