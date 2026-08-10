@@ -1,3 +1,6 @@
-// Single source of truth for the backend's base URL. Phase 1 keeps this a
-// plain constant; a later phase can move it into Angular environment files.
-export const API_BASE_URL = 'http://localhost:8000';
+import { environment } from '../../environments/environment';
+
+// Single source of truth for the backend's base URL, sourced from the
+// environment file Angular swaps in per build configuration (see angular.json's
+// fileReplacements for "development").
+export const API_BASE_URL = environment.apiUrl;

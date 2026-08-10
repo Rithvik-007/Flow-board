@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { Subject } from 'rxjs';
-import { API_BASE_URL } from '../api.config';
+import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
 
 export type WsEventType =
@@ -73,8 +73,7 @@ export class WebSocketService {
     // Browsers can't set custom headers on a WebSocket handshake, so the JWT
     // that would normally be an Authorization header rides as a query param.
     const token = this.authService.getToken();
-    const wsBase = API_BASE_URL.replace(/^http/, 'ws');
-    const url = `${wsBase}/ws/${this.projectId}?token=${encodeURIComponent(token ?? '')}`;
+    const url = `${environment.wsUrl}/ws/${this.projectId}?token=${encodeURIComponent(token ?? '')}`;
 
     const socket = new WebSocket(url);
     this.socket = socket;
