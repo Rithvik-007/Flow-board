@@ -24,7 +24,10 @@ app = FastAPI(title="Flowboard API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origins=[
+        "http://localhost:4200",
+        "https://flowboard-prod.netlify.app"
+        ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
