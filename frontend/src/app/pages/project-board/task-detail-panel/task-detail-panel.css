@@ -142,6 +142,10 @@
   gap: 0.5rem;
 }
 
+.due-date-inputs input::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
 .due-date-inputs input {
   padding: 0.3rem 0.5rem;
   font-size: 0.9rem;

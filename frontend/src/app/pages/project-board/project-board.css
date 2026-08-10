@@ -203,6 +203,10 @@ header h1 {
   flex: 1;
 }
 
+.due-date-inputs input::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
 .form-actions {
   display: flex;
   gap: 0.5rem;
